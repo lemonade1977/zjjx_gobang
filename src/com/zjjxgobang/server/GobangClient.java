@@ -4,6 +4,8 @@ import com.zjjxgobang.jBean.Gobang;
 import com.zjjxgobang.jBean.Player;
 import com.zjjxgobang.swing.jframe.FindGameFrame;
 import com.zjjxgobang.swing.jframe.GameFrame;
+import com.zjjxgobang.swing.jframe.LoserFrame;
+import com.zjjxgobang.swing.jframe.WinnerFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 
 import javax.swing.*;
@@ -19,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 public class GobangClient {
 
     Player player = new Player();
+    Gobang gobang = new Gobang();
 
     public void createGame() {
         JFrame findGobangJFrame = CreateWaitingGUI();
@@ -32,7 +35,7 @@ public class GobangClient {
         JFrame findGobangJFrame = new FindGameFrame("Gobang");
         findGobangJFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         findGobangJFrame.setResizable(false);
-        findGobangJFrame.setSize(400, 200);
+        findGobangJFrame.setSize(400, 310);
         findGobangJFrame.setVisible(true);
         return findGobangJFrame;
     }
@@ -54,7 +57,7 @@ public class GobangClient {
             socket = new Socket();
             try {
 
-                socket.connect(new InetSocketAddress("192.168.14.244", 3300));
+                socket.connect(new InetSocketAddress("localhost", 3300));
                 player.setPlayerSocket(socket);
                 socket.setKeepAlive(true);
                 BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
@@ -90,11 +93,13 @@ public class GobangClient {
                     String color = s.substring(colorIndex, colorIndex + 2);
                     if (color.equals("BL")) {
                         player.setPlayerColor(Color.BLACK);
-                        JOptionPane.showMessageDialog(null, "本局游戏你为黑色方先手，请下棋",
+                        gameFrame.getGobang().setOwnPlayerColor(Color.BLACK);
+                        JOptionPane.showMessageDialog(null, "本局游戏你为先手方，请下棋",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         player.setPlayerColor(Color.BLUE);
-                        JOptionPane.showMessageDialog(null, "本局游戏你为蓝色方后手，请等待",
+                        gameFrame.getGobang().setOwnPlayerColor(Color.BLUE);
+                        JOptionPane.showMessageDialog(null, "本局游戏你为后手方，请等待",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
@@ -116,15 +121,15 @@ public class GobangClient {
 
     private GameFrame showGobang(JFrame jFrame, Player player) {
         jFrame.setVisible(false);
-        Gobang gobang = new Gobang();
         GameFrame gobangJFrame = new GameFrame("Gobang", gobang, player);
         gobangJFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gobangJFrame.setResizable(false);
-        gobangJFrame.setSize(610, 610);
+        gobangJFrame.setSize(600, 610);
         gobangJFrame.setVisible(true);
 
         return gobangJFrame;
     }
+
 
     private class ClientTask implements Runnable {
 
@@ -151,9 +156,9 @@ public class GobangClient {
                     if (split[0].matches("^\\d+$")) {
                         JGamePanel jPanel = jPanels.get(Integer.valueOf(split[0]) - 1);
                         if (player.getPlayerColor().equals(Color.BLACK)) {
-                            jPanel.updateGobang(jPanel.getGraphics(), Color.BLUE);
+                            jPanel.updateGobang(Color.BLUE);
                         } else {
-                            jPanel.updateGobang(jPanel.getGraphics(), Color.BLACK);
+                            jPanel.updateGobang(Color.BLACK);
                         }
                     } else {
                         //  tackle error or GameOver
