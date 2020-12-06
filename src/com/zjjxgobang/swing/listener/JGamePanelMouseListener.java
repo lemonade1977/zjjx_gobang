@@ -34,7 +34,7 @@ public class JGamePanelMouseListener extends MouseAdapter {
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
-            mouseClickDraw(jGamePanel.getGraphics());
+            mouseClickDraw();
             gobang.getGobangMap().put(jGamePanel.Id, player.getPlayerColor());
             gobang.changePlayer();
             gobang.isEnd(jGamePanel.Id);
@@ -47,7 +47,7 @@ public class JGamePanelMouseListener extends MouseAdapter {
     @Override
     public void mouseEntered(MouseEvent e) {
         if (!gobang.doPutGobang(jGamePanel.Id)) {
-            mouseEnteredDraw(jGamePanel.getGraphics());
+            mouseEnteredDraw();
         }
     }
 
@@ -58,21 +58,11 @@ public class JGamePanelMouseListener extends MouseAdapter {
         }
     }
 
-    private void mouseEnteredDraw(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g.create();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(Color.GRAY);
-        g2d.drawOval((jGamePanel.width / 2) - jGamePanel.radis, (jGamePanel.height / 2) - jGamePanel.radis, 2 * jGamePanel.radis, 2 * jGamePanel.radis);
-        g2d.fillOval((jGamePanel.width / 2) - jGamePanel.radis, (jGamePanel.height / 2) - jGamePanel.radis, 2 * jGamePanel.radis, 2 * jGamePanel.radis);
-        g2d.dispose();
+    private void mouseEnteredDraw() {
+        jGamePanel.enterGobang();
     }
 
-    private void mouseClickDraw(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g.create();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(player.getPlayerColor());
-        g2d.drawOval((jGamePanel.width / 2) - jGamePanel.gobang_radis, (jGamePanel.height / 2) - jGamePanel.gobang_radis, 2 * jGamePanel.gobang_radis, 2 * jGamePanel.gobang_radis);
-        g2d.fillOval((jGamePanel.width / 2) - jGamePanel.gobang_radis, (jGamePanel.height / 2) - jGamePanel.gobang_radis, 2 * jGamePanel.gobang_radis, 2 * jGamePanel.gobang_radis);
-        g2d.dispose();
+    private void mouseClickDraw() {
+        jGamePanel.putGobang(player.getPlayerColor());
     }
 }
