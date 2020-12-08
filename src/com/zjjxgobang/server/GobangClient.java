@@ -4,8 +4,6 @@ import com.zjjxgobang.jBean.Gobang;
 import com.zjjxgobang.jBean.Player;
 import com.zjjxgobang.swing.jframe.FindGameFrame;
 import com.zjjxgobang.swing.jframe.GameFrame;
-import com.zjjxgobang.swing.jframe.LoserFrame;
-import com.zjjxgobang.swing.jframe.WinnerFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 
 import javax.swing.*;
@@ -22,6 +20,16 @@ public class GobangClient {
 
     Player player = new Player();
     Gobang gobang = new Gobang();
+    private static int closeTime = 5000;
+
+    public static int getCloseTime() {
+        return closeTime;
+    }
+
+    public static void setCloseTime(int closeTime) {
+        GobangClient.closeTime = closeTime;
+    }
+
 
     public void createGame() {
         JFrame findGobangJFrame = CreateWaitingGUI();
@@ -35,7 +43,7 @@ public class GobangClient {
         JFrame findGobangJFrame = new FindGameFrame("Gobang");
         findGobangJFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         findGobangJFrame.setResizable(false);
-        findGobangJFrame.setSize(400, 310);
+        findGobangJFrame.setSize(400, 300);
         findGobangJFrame.setVisible(true);
         return findGobangJFrame;
     }
@@ -57,9 +65,10 @@ public class GobangClient {
             socket = new Socket();
             try {
 
-                socket.connect(new InetSocketAddress("localhost", 3300));
+                socket.connect(new InetSocketAddress("192.168.106.8", 3300));
                 player.setPlayerSocket(socket);
                 socket.setKeepAlive(true);
+                socket.setSoTimeout(60000);
                 BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
                 InputStreamReader reader = new InputStreamReader(in, "UTF-8");
                 char[] line = new char[96];

@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 
+import static java.lang.Thread.sleep;
+
 public class Gobang {
 
     public static final Color GOBANG_PLAYER1_COLOR = Color.BLACK;
@@ -95,6 +97,8 @@ public class Gobang {
                     showWinnerGUI();
                 else
                     showLoserGUI();
+                Thread closeTask = new Thread(new CloseTask());
+                closeTask.start();
                 return true;
             }
             if (gobang.getGobangMap().get(tmp) != null) {
@@ -130,7 +134,7 @@ public class Gobang {
         WinnerFrame winnerFrame = new WinnerFrame("Winner");
         winnerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         winnerFrame.setResizable(false);
-        winnerFrame.setSize(550, 520);
+        winnerFrame.setSize(550, 500);
         winnerFrame.setVisible(true);
     }
 
@@ -138,7 +142,19 @@ public class Gobang {
         LoserFrame loserFrame = new LoserFrame("Loser");
         loserFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         loserFrame.setResizable(false);
-        loserFrame.setSize(550, 520);
+        loserFrame.setSize(550, 500);
         loserFrame.setVisible(true);
+    }
+
+    private class CloseTask implements Runnable{
+        @Override
+        public void run() {
+            try {
+                sleep(GobangClient.getCloseTime());
+                System.exit(0);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

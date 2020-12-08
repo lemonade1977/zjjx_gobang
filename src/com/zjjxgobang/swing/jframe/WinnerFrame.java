@@ -3,17 +3,43 @@ package com.zjjxgobang.swing.jframe;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class WinnerFrame extends JFrame {
 
+    private int xOld = 0;
+    private int yOld = 0;
+
     public WinnerFrame(String title) throws HeadlessException {
         super(title);
         WinnerJPanel winnerJPanel = new WinnerJPanel();
         winnerJPanel.setSize(new Dimension(550,500));
         this.setContentPane(winnerJPanel);
+        this.setUndecorated(true);
+        // 以下鼠标监听为实现窗口移动
+        this.addMouseListener(new MouseAdapter() {
+                                  public void mousePressed(MouseEvent e) {
+                                      xOld = e.getX();
+                                      yOld = e.getY();
+                                  }
+                              }
+        );
+        this.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                int xOnScreen = e.getXOnScreen();
+                int yOnScreen = e.getYOnScreen();
+
+                int xLo = xOnScreen - xOld;
+                int yLo = yOnScreen - yOld;
+
+                WinnerFrame.this.setLocation(xLo, yLo);
+            }
+        });
     }
 
     private class WinnerJPanel extends JPanel{
