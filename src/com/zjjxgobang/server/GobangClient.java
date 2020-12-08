@@ -5,14 +5,15 @@ import com.zjjxgobang.jBean.Player;
 import com.zjjxgobang.swing.jframe.FindGameFrame;
 import com.zjjxgobang.swing.jframe.GameFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
+import com.zjjxgobang.swing.listener.WindowsClosed;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -21,6 +22,15 @@ public class GobangClient {
     Player player = new Player();
     Gobang gobang = new Gobang();
     private static int closeTime = 5000;
+    private InetSocketAddress address;
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Gobang getGobang() {
+        return gobang;
+    }
 
     public static int getCloseTime() {
         return closeTime;
@@ -30,10 +40,12 @@ public class GobangClient {
         GobangClient.closeTime = closeTime;
     }
 
+    public GobangClient(InetSocketAddress address) {
+        this.address = address;
+    }
 
     public void createGame() {
         JFrame findGobangJFrame = CreateWaitingGUI();
-
         WaitForPlayer waitForPlayer = new WaitForPlayer(findGobangJFrame, player);
         waitForPlayer.execute();
 
@@ -41,7 +53,6 @@ public class GobangClient {
 
     private JFrame CreateWaitingGUI() {
         JFrame findGobangJFrame = new FindGameFrame("Gobang");
-        findGobangJFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         findGobangJFrame.setResizable(false);
         findGobangJFrame.setSize(400, 300);
         findGobangJFrame.setVisible(true);
@@ -64,11 +75,9 @@ public class GobangClient {
         protected String doInBackground() {
             socket = new Socket();
             try {
-
-                socket.connect(new InetSocketAddress("192.168.106.8", 3300));
+                socket.connect(address);
                 player.setPlayerSocket(socket);
-                socket.setKeepAlive(true);
-                socket.setSoTimeout(60000);
+                socket.setSoTimeout(8000);
                 BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
                 InputStreamReader reader = new InputStreamReader(in, "UTF-8");
                 char[] line = new char[96];
@@ -76,6 +85,10 @@ public class GobangClient {
                 if (len > 0) {
                     return String.valueOf(line);
                 }
+            } catch (SocketTimeoutException e) {
+                JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
+                writeError(socket);
+                System.exit(-1);
             } catch (IOException e) {
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(null, "连接服务器失败", "错误消息", JOptionPane.ERROR_MESSAGE);
@@ -96,6 +109,7 @@ public class GobangClient {
                         task.start();
                     } else {
                         JOptionPane.showMessageDialog(null, "创建对局连接失败", "错误消息", JOptionPane.ERROR_MESSAGE);
+                        writeError(socket);
                         System.exit(-1);
                     }
                     int colorIndex = s.indexOf("color:") + 6;
@@ -105,16 +119,48 @@ public class GobangClient {
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLACK);
                         JOptionPane.showMessageDialog(null, "本局游戏你为先手方，请下棋",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
+                        writeBegin(socket);
                     } else {
                         player.setPlayerColor(Color.BLUE);
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLUE);
                         JOptionPane.showMessageDialog(null, "本局游戏你为后手方，请等待",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
+                        writeBegin(socket);
                     }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void writeError(Socket socket) {
+            BufferedOutputStream out = null;
+            try {
+                out = new BufferedOutputStream(socket.getOutputStream());
+                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+                writer.write("socketError\r\n");
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void writeBegin(Socket socket) {
+            BufferedOutputStream out = null;
+            try {
+                out = new BufferedOutputStream(socket.getOutputStream());
+                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+                writer.write("begin\r\n");
+                writer.flush();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -131,7 +177,7 @@ public class GobangClient {
     private GameFrame showGobang(JFrame jFrame, Player player) {
         jFrame.setVisible(false);
         GameFrame gobangJFrame = new GameFrame("Gobang", gobang, player);
-        gobangJFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gobangJFrame.addWindowListener(new WindowsClosed(this));
         gobangJFrame.setResizable(false);
         gobangJFrame.setSize(600, 610);
         gobangJFrame.setVisible(true);
@@ -152,8 +198,13 @@ public class GobangClient {
         public void run() {
 
             Socket socket = waitForPlayer.getSocket();
+            try {
+                socket.setSoTimeout(60000);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
             GameFrame gameFrame = waitForPlayer.getGameFrame();
-            ArrayList<JGamePanel> jPanels = waitForPlayer.getGameFrame().getjPanelArrayList();
+            ArrayList<JGamePanel> jPanels = gameFrame.getjPanelArrayList();
             try {
                 InputStreamReader reader = new InputStreamReader(socket.getInputStream());
                 int len;
@@ -170,9 +221,23 @@ public class GobangClient {
                             jPanel.updateGobang(Color.BLACK);
                         }
                     } else {
-                        //  tackle error or GameOver
+                        if (split[0].startsWith("end")) {
+                            socket.close();
+                            JOptionPane.showMessageDialog(null, "对手已退出游戏-游戏结束", "连接中断", JOptionPane.ERROR_MESSAGE);
+                            System.exit(4);
+                        }
                     }
                 }
+            } catch (SocketTimeoutException e) {
+                JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
+                try {
+                    socket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+                System.exit(-1);
+            } catch (SocketException e) {
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

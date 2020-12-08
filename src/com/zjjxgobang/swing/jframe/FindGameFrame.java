@@ -1,11 +1,11 @@
 package com.zjjxgobang.swing.jframe;
 
+import com.zjjxgobang.swing.listener.WindowsClosed;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -17,8 +17,8 @@ public class FindGameFrame extends JFrame {
 
     public FindGameFrame(String title) throws HeadlessException {
         super(title);
-
         jPanel.setSize(new Dimension(400, 300));
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setContentPane(jPanel);
         this.setUndecorated(true);
         // 以下鼠标监听为实现窗口移动
