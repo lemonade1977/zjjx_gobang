@@ -35,6 +35,8 @@ public class GobangServer {
                         color1 = "BU";
                         color2 = "BL";
                     }
+                    if (player1.isClosed() || player2.isClosed())
+                        continue;
                     PlayConnectTask playConnectTask1 = new PlayConnectTask(player1, color1);
                     PlayConnectTask playConnectTask2 = new PlayConnectTask(player2, color2);
                     Thread connectThread1 = new Thread(playConnectTask1);
@@ -123,54 +125,6 @@ public class GobangServer {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
-        }
-    }
-
-    private void checkSocket(Socket player1, Socket player2) {
-        try {
-            InputStreamReader reader = new InputStreamReader(new BufferedInputStream(player1.getInputStream()));
-            while (true) {
-                int len;
-                char[] line = new char[96];
-                if ((len = reader.read(line)) != -1) {
-                    String msg = String.valueOf(line, 0, len);
-                    if (msg.startsWith("socketError")) {
-                        System.out.println("CheckSocket closed");
-                        if (!player1.isClosed()) {
-                            System.out.println("write player2");
-                            writeError(player1);
-                            player1.close();
-                        }
-                        if (!player2.isClosed()) {
-                            System.out.println("write player2");
-                            writeError(player2);
-                            player2.close();
-                        }
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            System.err.println("socket is closed");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void writeError(Socket socket) {
-        BufferedOutputStream out = null;
-        try {
-            out = new BufferedOutputStream(socket.getOutputStream());
-            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-            writer.write("socketError\r\n");
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
