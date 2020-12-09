@@ -2,42 +2,35 @@ package com.zjjxgobang.swing.listener;
 
 import com.zjjxgobang.jBean.Gobang;
 import com.zjjxgobang.jBean.Player;
+import com.zjjxgobang.swing.jframe.GameFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 public class JGamePanelMouseListener extends MouseAdapter {
+    protected JGamePanel jGamePanel;
+    int id;
     Gobang gobang;
     Player player;
-    protected JGamePanel jGamePanel;
     Socket socket;
 
-    public JGamePanelMouseListener(JGamePanel jGamePanel, Gobang gobang,Player player) {
+    public JGamePanelMouseListener(JGamePanel jGamePanel,GameFrame gf) {
         this.jGamePanel = jGamePanel;
-        this.gobang = gobang;
-        this.player = player;
+        GameFrame gameFrame = gf;
+        this.gobang = gameFrame.getGobang();
+        this.player = gameFrame.getPlayer();
         this.socket = player.getPlayerSocket();
+        this.id = jGamePanel.getId();
     }
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (!gobang.doPutGobang(jGamePanel.Id) && !gobang.isGameOver() && gobang.getNowPlayerColor().equals(player.getPlayerColor())) {
-            try {
-                OutputStreamWriter witer = new OutputStreamWriter(socket.getOutputStream(),"UTF-8");
-                witer.write(jGamePanel.Id+"\r\n");
-                witer.flush();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
+        if (!gobang.doPutGobang(id) && !gobang.isGameOver() && gobang.getNowPlayerColor().equals(player.getPlayerColor())) {
+            player.sentGobangIdToServer(id);
             mouseClickDraw();
-            gobang.getGobangMap().put(jGamePanel.Id, player.getPlayerColor());
-            gobang.changePlayer();
-            gobang.isEnd(jGamePanel.Id);
+            gobang.putGobang(id,player.getPlayerColor());
         } else if (gobang.isGameOver()) {
             System.out.println("game over");
             System.out.println(gobang.getGobangMap());
@@ -46,14 +39,14 @@ public class JGamePanelMouseListener extends MouseAdapter {
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        if (!gobang.doPutGobang(jGamePanel.Id)) {
+        if (!gobang.doPutGobang(id)) {
             mouseEnteredDraw();
         }
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        if (!gobang.doPutGobang(jGamePanel.Id)) {
+        if (!gobang.doPutGobang(id)) {
             jGamePanel.repaint();
         }
     }
@@ -63,6 +56,6 @@ public class JGamePanelMouseListener extends MouseAdapter {
     }
 
     private void mouseClickDraw() {
-        jGamePanel.putGobang(player.getPlayerColor());
+        jGamePanel.drawGobang(player.getPlayerColor());
     }
 }

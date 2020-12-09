@@ -111,6 +111,12 @@ public class Gobang {
         return false;
     }
 
+    public void putGobang(int id,Color color){
+        gobangMap.put(id,color);
+        changePlayer();
+        isEnd(id);
+    }
+
     public boolean doPutGobang(int id) {
         HashMap<Integer, Color> gobangMap = this.getGobangMap();
         if (gobangMap.get(id) != null)

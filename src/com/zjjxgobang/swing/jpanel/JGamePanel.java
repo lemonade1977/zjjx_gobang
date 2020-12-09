@@ -1,6 +1,7 @@
 package com.zjjxgobang.swing.jpanel;
 
 import com.zjjxgobang.jBean.Gobang;
+import com.zjjxgobang.swing.jframe.GameFrame;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -13,7 +14,6 @@ import java.io.IOException;
  * 棋盘中的棋子落点
  */
 public class JGamePanel extends JPanel {
-    private Gobang gobang;
     public final int height = 30;
     public final int width = 30;
     public final int Id;
@@ -21,11 +21,16 @@ public class JGamePanel extends JPanel {
     public final Color lineColor = new Color(141, 143, 181);
     public final Color enterColor = new Color(165, 149, 166);
 
-    public JGamePanel(int id,Gobang gobang) {
+    private GameFrame parent;
+    private Gobang gobang;
+
+    public JGamePanel(int id,GameFrame parent) {
         this.Id = id + 1;
-        this.gobang = gobang;
         this.setBackground(null);
         this.setOpaque(false);
+
+        this.parent = parent;
+        this.gobang = parent.getGobang();
     }
 
     @Override
@@ -37,17 +42,15 @@ public class JGamePanel extends JPanel {
 
     public void updateGobang(Color color){
         if (!gobang.doPutGobang(this.Id) && !gobang.isGameOver()) {
-            putGobang(color);
-            gobang.getGobangMap().put(this.Id, color);
-            gobang.changePlayer();
-            gobang.isEnd(this.Id);
+            drawGobang(color);
+            gobang.putGobang(this.Id,color);
         } else if (gobang.isGameOver()) {
             System.out.println("game over");
             System.out.println(gobang.getGobangMap());
         }
     }
 
-    public void putGobang(Color color){
+    public void drawGobang(Color color){
         Graphics g = this.getGraphics();
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -86,4 +89,7 @@ public class JGamePanel extends JPanel {
         g2d.dispose();
     }
 
+    public int getId() {
+        return Id;
+    }
 }

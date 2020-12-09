@@ -1,5 +1,7 @@
 package com.zjjxgobang.swing.jframe;
 
+import com.zjjxgobang.swing.listener.FrameSetUndecorated;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -20,26 +22,7 @@ public class LoserFrame extends JFrame {
         LoserPannel winnerJPanel = new LoserPannel();
         winnerJPanel.setSize(new Dimension(550,500));
         this.setContentPane(winnerJPanel);
-        this.setUndecorated(true);
-        // 以下鼠标监听为实现窗口移动
-        this.addMouseListener(new MouseAdapter() {
-                                  public void mousePressed(MouseEvent e) {
-                                      xOld = e.getX();
-                                      yOld = e.getY();
-                                  }
-                              }
-        );
-        this.addMouseMotionListener(new MouseMotionAdapter() {
-            public void mouseDragged(MouseEvent e) {
-                int xOnScreen = e.getXOnScreen();
-                int yOnScreen = e.getYOnScreen();
-
-                int xLo = xOnScreen - xOld;
-                int yLo = yOnScreen - yOld;
-
-                LoserFrame.this.setLocation(xLo, yLo);
-            }
-        });
+        new FrameSetUndecorated(this).doSet();
     }
 
     private class LoserPannel extends JPanel{
