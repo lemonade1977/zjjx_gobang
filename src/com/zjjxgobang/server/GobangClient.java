@@ -21,24 +21,9 @@ public class GobangClient {
 
     Player player = new Player();
     Gobang gobang = new Gobang();
+
     private static int closeTime = 5000;
     private InetSocketAddress address;
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public Gobang getGobang() {
-        return gobang;
-    }
-
-    public static int getCloseTime() {
-        return closeTime;
-    }
-
-    public static void setCloseTime(int closeTime) {
-        GobangClient.closeTime = closeTime;
-    }
 
     public GobangClient(InetSocketAddress address) {
         this.address = address;
@@ -48,7 +33,6 @@ public class GobangClient {
         JFrame findGobangJFrame = CreateWaitingGUI();
         WaitForPlayer waitForPlayer = new WaitForPlayer(findGobangJFrame, player);
         waitForPlayer.execute();
-
     }
 
     private JFrame CreateWaitingGUI() {
@@ -78,16 +62,10 @@ public class GobangClient {
                 socket.connect(address);
                 player.setPlayerSocket(socket);
                 socket.setSoTimeout(8000);
-                BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
-                InputStreamReader reader = new InputStreamReader(in, "UTF-8");
-                char[] line = new char[96];
-                int len = reader.read(line);
-                if (len > 0) {
-                    return String.valueOf(line);
-                }
+                return player.waitForCreateGame();
             } catch (SocketTimeoutException e) {
                 JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
-                writeError(socket);
+                player.sentError();
                 System.exit(-1);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -109,7 +87,7 @@ public class GobangClient {
                         task.start();
                     } else {
                         JOptionPane.showMessageDialog(null, "创建对局连接失败", "错误消息", JOptionPane.ERROR_MESSAGE);
-                        writeError(socket);
+                        player.sentError();
                         System.exit(-1);
                     }
                     int colorIndex = s.indexOf("color:") + 6;
@@ -119,13 +97,13 @@ public class GobangClient {
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLACK);
                         JOptionPane.showMessageDialog(null, "本局游戏你为先手方，请下棋",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
-                        writeBegin(socket);
+                        player.sentBegin();
                     } else {
                         player.setPlayerColor(Color.BLUE);
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLUE);
                         JOptionPane.showMessageDialog(null, "本局游戏你为后手方，请等待",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
-                        writeBegin(socket);
+                        player.sentBegin();
                     }
                 }
             } catch (InterruptedException e) {
@@ -135,35 +113,6 @@ public class GobangClient {
             }
         }
 
-        private void writeError(Socket socket) {
-            BufferedOutputStream out = null;
-            try {
-                out = new BufferedOutputStream(socket.getOutputStream());
-                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-                writer.write("socketError\r\n");
-                writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        private void writeBegin(Socket socket) {
-            BufferedOutputStream out = null;
-            try {
-                out = new BufferedOutputStream(socket.getOutputStream());
-                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-                writer.write("begin\r\n");
-                writer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
         public GameFrame getGameFrame() {
             return gameFrame;
@@ -206,28 +155,7 @@ public class GobangClient {
             GameFrame gameFrame = waitForPlayer.getGameFrame();
             ArrayList<JGamePanel> jPanels = gameFrame.getjPanelArrayList();
             try {
-                InputStreamReader reader = new InputStreamReader(socket.getInputStream());
-                int len;
-                char[] line = new char[96];
-                String strLine;
-                while ((len = reader.read(line)) != -1) {
-                    strLine = String.valueOf(line, 0, len);
-                    String[] split = strLine.split("\r\n");
-                    if (split[0].matches("^\\d+$")) {
-                        JGamePanel jPanel = jPanels.get(Integer.valueOf(split[0]) - 1);
-                        if (player.getPlayerColor().equals(Color.BLACK)) {
-                            jPanel.updateGobang(Color.BLUE);
-                        } else {
-                            jPanel.updateGobang(Color.BLACK);
-                        }
-                    } else {
-                        if (split[0].startsWith("end")) {
-                            socket.close();
-                            JOptionPane.showMessageDialog(null, "对手已退出游戏-游戏结束", "连接中断", JOptionPane.ERROR_MESSAGE);
-                            System.exit(4);
-                        }
-                    }
-                }
+                player.receviceMsg(jPanels);
             } catch (SocketTimeoutException e) {
                 JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
                 try {
@@ -242,6 +170,23 @@ public class GobangClient {
                 e.printStackTrace();
             }
         }
+    }
+
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Gobang getGobang() {
+        return gobang;
+    }
+
+    public static int getCloseTime() {
+        return closeTime;
+    }
+
+    public static void setCloseTime(int closeTime) {
+        GobangClient.closeTime = closeTime;
     }
 
 }

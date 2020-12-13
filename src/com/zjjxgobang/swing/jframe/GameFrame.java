@@ -20,17 +20,27 @@ public class GameFrame extends JFrame {
     private int rows = 20;
     private int cols = 20;
     private Gobang gobang;
+    private Player player;
+    ArrayList<JGamePanel> jPanelArrayList = new ArrayList<>();
 
     public Gobang getGobang() {
         return gobang;
     }
+    public Player getPlayer() {
+        return player;
+    }
+
+    public ArrayList<JGamePanel> getjPanelArrayList() {
+        return jPanelArrayList;
+    }
 
     JPanel jPanel = new GobangPanel();
-    ArrayList<JGamePanel> jPanelArrayList = new ArrayList<>();
-
     public GameFrame(String title,Gobang gobang,Player player){
         super(title);
+
         this.gobang = gobang;
+        this.player = player;
+
         jPanel.setSize(600,600);
         Container contentPane = this.getContentPane();
         contentPane.setLayout(new BorderLayout());
@@ -39,16 +49,15 @@ public class GameFrame extends JFrame {
 
         JGamePanel jGamePanelTmp;
         for (int i =0;i<rows*cols;i++){
-            jGamePanelTmp = new JGamePanel(i,gobang);
+            jGamePanelTmp = new JGamePanel(i,this);
             jPanelArrayList.add(jGamePanelTmp);
-            JGamePanelMouseListener jGamePanelMouseListener = new JGamePanelMouseListener(jGamePanelTmp,this.gobang,player);
+            JGamePanelMouseListener jGamePanelMouseListener = new JGamePanelMouseListener(jGamePanelTmp,this);
             jGamePanelTmp.addMouseListener(jGamePanelMouseListener);
             jPanel.add(jPanelArrayList.get(i));
         }
     }
 
     private class GobangPanel extends JPanel{
-
         @Override
         protected void paintComponent(Graphics g) {
             try {
@@ -63,8 +72,5 @@ public class GameFrame extends JFrame {
                 e.printStackTrace();
             }
         }
-    }
-    public ArrayList<JGamePanel> getjPanelArrayList() {
-        return jPanelArrayList;
     }
 }
