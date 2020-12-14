@@ -1,5 +1,7 @@
 package com.zjjxgobang.swing.jframe;
 
+import com.zjjxgobang.jBean.Player;
+import com.zjjxgobang.server.GobangClient;
 import com.zjjxgobang.swing.jpanel.ConfirmJPanel;
 import com.zjjxgobang.swing.jpanel.InputNormalJPanel;
 
@@ -11,46 +13,77 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 public class LoginFrame extends JFrame {
 
-    public LoginFrame(String title) throws HeadlessException {
+    private GobangClient gobangClient;
+    private LoginFrame loginFrame = this;
+
+    public LoginFrame(String title, GobangClient gobangClient,UserFrame userFrame) throws HeadlessException {
         super(title);
-        this.setSize(new Dimension(300,200));
+        this.setSize(new Dimension(300, 200));
         this.setResizable(true);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel contentJpanel = new LoginJPanel();
         this.setContentPane(contentJpanel);
         contentJpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        contentJpanel.setSize(new Dimension(300,200));
+        contentJpanel.setSize(new Dimension(300, 200));
 
-            InputNormalJPanel emailJpanel = new InputNormalJPanel("邮箱：");
-            InputNormalJPanel pwdJpanel = new InputNormalJPanel("密码：",true);
+        InputNormalJPanel emailJpanel = new InputNormalJPanel("邮箱：");
+        InputNormalJPanel pwdJpanel = new InputNormalJPanel("密码：", true);
 
-            ConfirmJPanel confirmJpanel = new ConfirmJPanel();
-            JButton confirmButton = confirmJpanel.getConfirmButton();
+        ConfirmJPanel confirmJpanel = new ConfirmJPanel();
+        JButton confirmButton = confirmJpanel.getConfirmButton();
 
         Box verticalBox = Box.createVerticalBox();
-            Component topMargin = Box.createVerticalStrut(30);
+        Component topMargin = Box.createVerticalStrut(30);
 
-                verticalBox.add(topMargin);
-                verticalBox.add(emailJpanel);
-                verticalBox.add(pwdJpanel);
-                verticalBox.add(confirmJpanel);
+        verticalBox.add(topMargin);
+        verticalBox.add(emailJpanel);
+        verticalBox.add(pwdJpanel);
+        verticalBox.add(confirmJpanel);
 
         contentJpanel.add(verticalBox);
 
         confirmButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                System.out.println(emailJpanel.getMsg());
-                System.out.println(pwdJpanel.getMsg());
+                Player player = gobangClient.getPlayer();
+                if (player.getPlayerSocket() == null) {
+                    Socket socket = new Socket();
+                    try {
+                        socket.connect(gobangClient.getAddress());
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                    player.setPlayerSocket(socket);
+                }
+                player.setName(emailJpanel.getMsg());
+                player.setPassword(pwdJpanel.getMsg());
+                player.sentBegin();
+                if (player.receviceConnectionMsg()) {
+                    loginFrame.setVisible(false);
+                    userFrame.setVisible(false);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            gobangClient.createGame();
+                        }
+                    });
+                } else {
+                    JOptionPane.showMessageDialog(null, "服务器无用户数据，请注册用户",
+                            "登录错误", JOptionPane.ERROR_MESSAGE);
+                    emailJpanel.cleanText();
+                    pwdJpanel.cleanText();
+                }
             }
         });
     }
 
-    private class LoginJPanel extends JPanel{
+    private class LoginJPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             BufferedImage img = null;
@@ -60,11 +93,12 @@ public class LoginFrame extends JFrame {
                 int height = img.getHeight(this);
 
                 Graphics2D g2d = (Graphics2D) g.create();
-                g2d.drawImage(img,0,0,width,height,this);
+                g2d.drawImage(img, 0, 0, width, height, this);
                 g2d.dispose();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
 }

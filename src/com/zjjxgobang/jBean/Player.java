@@ -6,7 +6,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
 public class Player {
@@ -102,16 +101,51 @@ public class Player {
         }
     }
 
+    public void sentRegister(){
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(playerSocket.getOutputStream());
+            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            writer.write("register;name:"+name+";pwd:"+password+";\r\n");
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sentBegin() {
         BufferedOutputStream out = null;
         try {
             out = new BufferedOutputStream(playerSocket.getOutputStream());
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-            writer.write("begin\r\n");
+            writer.write("begin;name:"+name+";pwd:"+password+";\r\n");
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void receviceUserInfo() throws IOException {
+        InputStreamReader reader = new InputStreamReader(playerSocket.getInputStream());
+        char[] line = new char[96];
+        int len = reader.read(line);
+        String strLine = String.valueOf(line, 0, len);
+    }
+    public boolean receviceConnectionMsg() {
+        InputStreamReader reader = null;
+        try {
+            reader = new InputStreamReader(playerSocket.getInputStream());
+            char[] line = new char[96];
+            int len = reader.read(line);
+            String strLine = String.valueOf(line, 0, len);
+            if (strLine.startsWith("OK"))
+                return true;
+            else
+                return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 

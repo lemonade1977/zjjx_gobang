@@ -19,9 +19,9 @@ public class GobangServer {
             serverSocket.setSoTimeout(300000);
 
             while (true) {
-                Socket player1 = serverSocket.accept();
+                Socket player1 = createConnect(serverSocket);
                 System.out.println("player 1" + player1);
-                Socket player2 = serverSocket.accept();
+                Socket player2 = createConnect(serverSocket);
                 System.out.println("player 2" + player2);
 
                 if (!player1.isClosed() && !player2.isClosed()) {
@@ -78,6 +78,8 @@ public class GobangServer {
                 System.err.println("Socket has closed");
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally {
+
             }
         }
     }
@@ -127,5 +129,23 @@ public class GobangServer {
                 }
             }
         }
+    }
+
+    public Socket createConnect(ServerSocket serverSocket){
+        Socket accept = null;
+        try {
+            accept = serverSocket.accept();
+            InputStreamReader reader = new InputStreamReader(new BufferedInputStream(accept.getInputStream()));
+            char[] line = new char[96];
+            int len = reader.read(line);
+            String strLine = String.valueOf(line, 0, len);
+            OutputStreamWriter writer = new OutputStreamWriter(new BufferedOutputStream(accept.getOutputStream()));
+            writer.write("OK\r\n");
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+        }
+        return accept;
     }
 }

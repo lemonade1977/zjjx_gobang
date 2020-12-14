@@ -10,7 +10,7 @@ public class GamePlayer2 {
         GobangClient gobangClient = new GobangClient(serverAddress);
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                gobangClient.createGame();
+                gobangClient.createUserFrame();
             }
         });
     }

@@ -4,6 +4,7 @@ import com.zjjxgobang.jBean.Gobang;
 import com.zjjxgobang.jBean.Player;
 import com.zjjxgobang.swing.jframe.FindGameFrame;
 import com.zjjxgobang.swing.jframe.GameFrame;
+import com.zjjxgobang.swing.jframe.UserFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 import com.zjjxgobang.swing.listener.WindowsClosed;
 
@@ -25,8 +26,17 @@ public class GobangClient {
     private static int closeTime = 5000;
     private InetSocketAddress address;
 
+    public InetSocketAddress getAddress() {
+        return address;
+    }
+
     public GobangClient(InetSocketAddress address) {
         this.address = address;
+    }
+
+    public void createUserFrame(){
+        UserFrame userFrame = new UserFrame("用户界面",this);
+        userFrame.setVisible(true);
     }
 
     public void createGame() {
@@ -55,11 +65,8 @@ public class GobangClient {
 
         @Override
         protected String doInBackground() {
-            socket = new Socket();
+            socket = player.getPlayerSocket();
             try {
-                socket.connect(address);
-                player.setPlayerSocket(socket);
-                socket.setSoTimeout(8000);
                 return player.waitForCreateGame();
             } catch (SocketTimeoutException e) {
                 JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
