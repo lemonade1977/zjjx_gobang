@@ -1,11 +1,16 @@
 package com.zjjxgobang.swing.jframe;
 
+import com.zjjxgobang.swing.jpanel.ConfirmJPanel;
 import com.zjjxgobang.swing.jpanel.InputNormalJPanel;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class RegisterFrame extends JFrame {
     public RegisterFrame(String title) throws HeadlessException {
@@ -14,7 +19,7 @@ public class RegisterFrame extends JFrame {
         this.setResizable(true);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        JPanel contentJpanel = new JPanel();
+        JPanel contentJpanel = new RegisterJPanel();
         this.setContentPane(contentJpanel);
         contentJpanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         contentJpanel.setSize(new Dimension(300,200));
@@ -23,15 +28,10 @@ public class RegisterFrame extends JFrame {
             InputNormalJPanel pwdJpanel = new InputNormalJPanel("设置密码：",true);
             InputNormalJPanel reconfirmPwdJpanel = new InputNormalJPanel("确认密码：",true);
 
-            JPanel confirmJpanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            confirmJpanel.setSize(new Dimension(300,120));
+            ConfirmJPanel confirmJpanel = new ConfirmJPanel();
+            JButton confirmButton = confirmJpanel.getConfirmButton();
 
-                JButton confirmButton = new JButton("确定");
-                confirmButton.setSize(new Dimension(60,60));
-
-            confirmJpanel.add(confirmButton);
-
-            Box verticalBox = Box.createVerticalBox();
+        Box verticalBox = Box.createVerticalBox();
             Component topMargin = Box.createVerticalStrut(20);
 
                 verticalBox.add(topMargin);
@@ -62,5 +62,23 @@ public class RegisterFrame extends JFrame {
                 System.out.println(rePwd);
             }
         });
+    }
+
+    private class RegisterJPanel extends JPanel{
+        @Override
+        protected void paintComponent(Graphics g) {
+            BufferedImage img = null;
+            try {
+                img = ImageIO.read(new File("src/resource/bg.png"));
+                int width = img.getWidth(this);
+                int height = img.getHeight(this);
+
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(img,0,0,width,height,this);
+                g2d.dispose();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

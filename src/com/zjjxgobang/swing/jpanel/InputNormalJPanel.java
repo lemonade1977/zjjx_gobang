@@ -13,6 +13,8 @@ public class InputNormalJPanel extends JPanel {
 
     public InputNormalJPanel(String txt,Boolean isPasswordField) {
         this.setSize(new Dimension(300,60));
+        this.setOpaque(false);
+        this.setBackground(null);
 
         JLabel text = new JLabel(txt);
         if (isPasswordField)

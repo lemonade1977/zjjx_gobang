@@ -1,9 +1,13 @@
 package com.zjjxgobang.swing.jframe;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class UserFrame extends JFrame {
 
@@ -14,10 +18,11 @@ public class UserFrame extends JFrame {
         this.setResizable(false);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         Container rootPanel = this.getContentPane();
+
         rootPanel.setSize(new Dimension(600,500));
         rootPanel.setLayout(new BorderLayout());
 
-            JPanel centerPanel = new JPanel();
+            JPanel centerPanel = new UserJPanel();
             centerPanel.setLayout(new BorderLayout());
             centerPanel.setSize(new Dimension(600,200));
 
@@ -27,15 +32,19 @@ public class UserFrame extends JFrame {
                 JButton registerButton = new JButton("注册");
                 registerButton.setSize(new Dimension(80,60));
 
+            Box verticalBox = Box.createVerticalBox();
+
                 Box horizontalBox = Box.createHorizontalBox();
                 Component centerSplit = Box.createHorizontalStrut(40);
-                Component leftSplit = Box.createHorizontalStrut(200);
-                horizontalBox.add(leftSplit);
                 horizontalBox.add(loginButton);
                 horizontalBox.add(centerSplit);
                 horizontalBox.add(registerButton);
 
-            centerPanel.add(horizontalBox,BorderLayout.CENTER);
+            Component topMargin = Box.createVerticalStrut(200);
+            verticalBox.add(topMargin);
+            verticalBox.add(horizontalBox);
+
+        centerPanel.add(verticalBox,BorderLayout.CENTER);
 
         rootPanel.add(centerPanel,BorderLayout.CENTER);
 
@@ -75,4 +84,21 @@ public class UserFrame extends JFrame {
         });
     }
 
+    private class UserJPanel extends JPanel{
+        @Override
+        protected void paintComponent(Graphics g) {
+            BufferedImage img = null;
+            try {
+                img = ImageIO.read(new File("src/resource/UserFrame.png"));
+                int width = img.getWidth(this);
+                int height = img.getHeight(this);
+
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.drawImage(img,0,0,width,height,this);
+                g2d.dispose();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
