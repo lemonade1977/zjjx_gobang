@@ -37,8 +37,6 @@ public class GobangClient {
 
     private JFrame CreateWaitingGUI() {
         JFrame findGobangJFrame = new FindGameFrame("Gobang");
-        findGobangJFrame.setResizable(false);
-        findGobangJFrame.setSize(400, 300);
         findGobangJFrame.setVisible(true);
         return findGobangJFrame;
     }
@@ -126,11 +124,9 @@ public class GobangClient {
     private GameFrame showGobang(JFrame jFrame, Player player) {
         jFrame.setVisible(false);
         GameFrame gobangJFrame = new GameFrame("Gobang", gobang, player);
-        gobangJFrame.addWindowListener(new WindowsClosed(this));
-        gobangJFrame.setResizable(false);
-        gobangJFrame.setSize(600, 610);
         gobangJFrame.setVisible(true);
 
+        gobangJFrame.addWindowListener(new WindowsClosed(this));
         return gobangJFrame;
     }
 

@@ -18,9 +18,13 @@ public class FindGameFrame extends JFrame {
 
     public FindGameFrame(String title) throws HeadlessException {
         super(title);
-        jPanel.setSize(new Dimension(400, 300));
+        this.setResizable(false);
+        this.setSize(400, 300);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        jPanel.setSize(new Dimension(400, 300));
         this.setContentPane(jPanel);
+
         new FrameSetUndecorated(this).doSet();
 
         jPanel.setLayout(new BorderLayout());
