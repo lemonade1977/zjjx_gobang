@@ -24,6 +24,17 @@ public class GameFrame extends JFrame {
     private Player player;
     ArrayList<JGamePanel> jPanelArrayList = new ArrayList<>();
 
+    UserInfoPanel player1Panel;
+    UserInfoPanel player2Panel;
+
+    public UserInfoPanel getPlayer1Panel() {
+        return player1Panel;
+    }
+
+    public UserInfoPanel getPlayer2Panel() {
+        return player2Panel;
+    }
+
     public Gobang getGobang() {
         return gobang;
     }
@@ -59,13 +70,13 @@ public class GameFrame extends JFrame {
             gobangJPanel.add(jPanelArrayList.get(i));
         }
 
-        UserInfoPanel thisPlayerInfoJPanel = new UserInfoPanel("src/resource/player1.png");
-        UserInfoPanel otherPlayerInfoJPanel = new UserInfoPanel("src/resource/player2.png");
+        player1Panel = new UserInfoPanel("src/resource/player1.png");
+        player2Panel = new UserInfoPanel("src/resource/player2.png");
 
         Box usersInfoPanelBox = Box.createVerticalBox();
         usersInfoPanelBox.setSize(new Dimension(200,600));
-        usersInfoPanelBox.add(thisPlayerInfoJPanel);
-        usersInfoPanelBox.add(otherPlayerInfoJPanel);
+        usersInfoPanelBox.add(player1Panel);
+        usersInfoPanelBox.add(player2Panel);
 
 
         contentPane.add(gobangJPanel,0);
@@ -88,18 +99,35 @@ public class GameFrame extends JFrame {
             }
         }
     }
-    private class UserInfoPanel extends JPanel{
+    public class UserInfoPanel extends JPanel{
         private String bgImgURL;
+
+        private RowPanel userNamePanel = new RowPanel("用户名");
+        private RowPanel genderPanel = new RowPanel("性别");
+        private RowPanel winNumPanel = new RowPanel("胜场");
+        private RowPanel winRatePanel = new RowPanel("胜率");
+
+        public RowPanel getUserNamePanel() {
+            return userNamePanel;
+        }
+
+        public RowPanel getGenderPanel() {
+            return genderPanel;
+        }
+
+        public RowPanel getWinNumPanel() {
+            return winNumPanel;
+        }
+
+        public RowPanel getWinRatePanel() {
+            return winRatePanel;
+        }
+
         public UserInfoPanel(String url) {
             super();
             bgImgURL=url;
             this.setSize(new Dimension(200,300));
             this.setLayout(new FlowLayout(FlowLayout.RIGHT));
-
-            JPanel userNamePanel = new RowPanel("用户名");
-            JPanel genderPanel = new RowPanel("性别");
-            JPanel winNumPanel = new RowPanel("胜场");
-            JPanel winRatePanel = new RowPanel("胜率");
 
             Box verticalBox = Box.createVerticalBox();
             Component topMargin = Box.createVerticalStrut(55);
@@ -135,7 +163,7 @@ public class GameFrame extends JFrame {
         }
     }
 
-    private class RowPanel extends JPanel{
+    public class RowPanel extends JPanel{
         private JLabel key;
         private JLabel value;
 

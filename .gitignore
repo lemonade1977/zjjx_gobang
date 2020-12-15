@@ -3,3 +3,5 @@ gobang-swing.iml
 out/
 .DS_Store
 *.iml
+**/jdbcconfig.properties
+

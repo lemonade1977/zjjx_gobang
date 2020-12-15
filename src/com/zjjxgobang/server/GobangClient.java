@@ -11,10 +11,7 @@ import com.zjjxgobang.swing.listener.WindowsClosed;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -68,7 +65,10 @@ public class GobangClient {
             socket = player.getPlayerSocket();
             try {
                 return player.waitForCreateGame();
-            } catch (SocketTimeoutException e) {
+            }catch (ConnectException e ){
+                JOptionPane.showMessageDialog(null, "无法找到服务器", "错误消息", JOptionPane.ERROR_MESSAGE);
+            }
+            catch (SocketTimeoutException e) {
                 JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
                 player.sentError();
                 System.exit(-1);
@@ -103,12 +103,14 @@ public class GobangClient {
                         JOptionPane.showMessageDialog(null, "本局游戏你为先手方，请下棋",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                         player.sentBegin();
+                        player.receviceUserInfo(gameFrame);
                     } else {
                         player.setPlayerColor(Color.BLUE);
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLUE);
                         JOptionPane.showMessageDialog(null, "本局游戏你为后手方，请等待",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                         player.sentBegin();
+                        player.receviceUserInfo(gameFrame);
                     }
                 }
             } catch (InterruptedException e) {
@@ -132,7 +134,6 @@ public class GobangClient {
         jFrame.setVisible(false);
         GameFrame gobangJFrame = new GameFrame("Gobang", gobang, player);
         gobangJFrame.setVisible(true);
-
         gobangJFrame.addWindowListener(new WindowsClosed(this));
         return gobangJFrame;
     }

@@ -63,7 +63,7 @@ public class LoginFrame extends JFrame {
                 }
                 player.setName(emailJpanel.getMsg());
                 player.setPassword(pwdJpanel.getMsg());
-                player.sentBegin();
+                player.sentLogin();
                 if (player.receviceConnectionMsg()) {
                     loginFrame.setVisible(false);
                     userFrame.setVisible(false);
@@ -74,7 +74,7 @@ public class LoginFrame extends JFrame {
                         }
                     });
                 } else {
-                    JOptionPane.showMessageDialog(null, "服务器无用户数据，请注册用户",
+                    JOptionPane.showMessageDialog(null, "连接服务器失败，请重新输入密码或注册用户",
                             "登录错误", JOptionPane.ERROR_MESSAGE);
                     emailJpanel.cleanText();
                     pwdJpanel.cleanText();

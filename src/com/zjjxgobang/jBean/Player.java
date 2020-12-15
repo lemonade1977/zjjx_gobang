@@ -1,12 +1,16 @@
 package com.zjjxgobang.jBean;
 
+import com.zjjxgobang.swing.jframe.GameFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Player {
     private String name;
@@ -101,36 +105,91 @@ public class Player {
         }
     }
 
-    public void sentRegister(){
+    public void sentRegister() {
         BufferedOutputStream out = null;
         try {
             out = new BufferedOutputStream(playerSocket.getOutputStream());
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-            writer.write("register;name:"+name+";pwd:"+password+";\r\n");
+            writer.write("register;name:" + name + ";pwd:" + password + ";\r\n");
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void sentBegin() {
+    public void sentLogin() {
         BufferedOutputStream out = null;
         try {
             out = new BufferedOutputStream(playerSocket.getOutputStream());
             OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
-            writer.write("begin;name:"+name+";pwd:"+password+";\r\n");
+            writer.write("login;name:" + name + ";pwd:" + password + ";\r\n");
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void receviceUserInfo() throws IOException {
-        InputStreamReader reader = new InputStreamReader(playerSocket.getInputStream());
-        char[] line = new char[96];
-        int len = reader.read(line);
-        String strLine = String.valueOf(line, 0, len);
+    public void sentBegin(){
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(playerSocket.getOutputStream());
+            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            writer.write("begin");
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    public void receviceUserInfo(GameFrame gameFrame) {
+        InputStreamReader reader = null;
+        try {
+            reader = new InputStreamReader(playerSocket.getInputStream());
+            char[] line = new char[256];
+            int len = reader.read(line);
+            String strLine = String.valueOf(line, 0, len);
+            String[] lines = strLine.split("\r\n");
+            for (int i = 0; i < 2; i++) {
+                String[] split = lines[i].split(";");
+                Arrays.asList(split).forEach(System.out::println);
+                String emailStr = split[1];
+                String email = emailStr.split(":")[1];
+                String genderStr = split[2];
+                String gender = genderStr.split(":")[1];
+                String winNumStr = split[3];
+                String winNum = winNumStr.split(":")[1];
+                String defeatNumStr = split[4];
+                String defeatNum = defeatNumStr.split(":")[1].trim();
+                Integer gameNum =  Integer.valueOf(winNum)+Integer.valueOf(defeatNum);
+                BigDecimal bigDecimalWinRate;
+                if (gameNum.equals(0)){
+                    bigDecimalWinRate = new BigDecimal(1);
+                }else {
+                    Double winRate = Double.valueOf(winNum)/gameNum;
+                    bigDecimalWinRate = new BigDecimal(winRate).setScale(2, RoundingMode.UP);
+                }
+                switch (split[0]) {
+                    case "player1":
+                        updatePlayerInfo(gameFrame.getPlayer1Panel(), email, gender, winNum, String.valueOf(bigDecimalWinRate));
+                        break;
+                    case "player2":
+                        updatePlayerInfo(gameFrame.getPlayer2Panel(), email, gender, winNum, String.valueOf(bigDecimalWinRate));
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updatePlayerInfo(GameFrame.UserInfoPanel userInfoPanel, String email, String gender,
+                                 String winNum, String winRate) {
+        userInfoPanel.getUserNamePanel().setValue(email);
+        userInfoPanel.getGenderPanel().setValue(gender);
+        userInfoPanel.getWinNumPanel().setValue(winNum);
+        userInfoPanel.getWinRatePanel().setValue(winRate);
+    }
+
     public boolean receviceConnectionMsg() {
         InputStreamReader reader = null;
         try {
