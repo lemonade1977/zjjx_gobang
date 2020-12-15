@@ -4,16 +4,14 @@ import com.zjjxgobang.jBean.Gobang;
 import com.zjjxgobang.jBean.Player;
 import com.zjjxgobang.swing.jframe.FindGameFrame;
 import com.zjjxgobang.swing.jframe.GameFrame;
+import com.zjjxgobang.swing.jframe.UserFrame;
 import com.zjjxgobang.swing.jpanel.JGamePanel;
 import com.zjjxgobang.swing.listener.WindowsClosed;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -25,8 +23,17 @@ public class GobangClient {
     private static int closeTime = 5000;
     private InetSocketAddress address;
 
+    public InetSocketAddress getAddress() {
+        return address;
+    }
+
     public GobangClient(InetSocketAddress address) {
         this.address = address;
+    }
+
+    public void createUserFrame(){
+        UserFrame userFrame = new UserFrame("用户界面",this);
+        userFrame.setVisible(true);
     }
 
     public void createGame() {
@@ -37,8 +44,6 @@ public class GobangClient {
 
     private JFrame CreateWaitingGUI() {
         JFrame findGobangJFrame = new FindGameFrame("Gobang");
-        findGobangJFrame.setResizable(false);
-        findGobangJFrame.setSize(400, 300);
         findGobangJFrame.setVisible(true);
         return findGobangJFrame;
     }
@@ -57,13 +62,13 @@ public class GobangClient {
 
         @Override
         protected String doInBackground() {
-            socket = new Socket();
+            socket = player.getPlayerSocket();
             try {
-                socket.connect(address);
-                player.setPlayerSocket(socket);
-                socket.setSoTimeout(8000);
                 return player.waitForCreateGame();
-            } catch (SocketTimeoutException e) {
+            }catch (ConnectException e ){
+                JOptionPane.showMessageDialog(null, "无法找到服务器", "错误消息", JOptionPane.ERROR_MESSAGE);
+            }
+            catch (SocketTimeoutException e) {
                 JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
                 player.sentError();
                 System.exit(-1);
@@ -98,12 +103,14 @@ public class GobangClient {
                         JOptionPane.showMessageDialog(null, "本局游戏你为先手方，请下棋",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                         player.sentBegin();
+                        player.receviceUserInfo(gameFrame);
                     } else {
                         player.setPlayerColor(Color.BLUE);
                         gameFrame.getGobang().setOwnPlayerColor(Color.BLUE);
                         JOptionPane.showMessageDialog(null, "本局游戏你为后手方，请等待",
                                 "游戏开始", JOptionPane.INFORMATION_MESSAGE);
                         player.sentBegin();
+                        player.receviceUserInfo(gameFrame);
                     }
                 }
             } catch (InterruptedException e) {
@@ -126,11 +133,8 @@ public class GobangClient {
     private GameFrame showGobang(JFrame jFrame, Player player) {
         jFrame.setVisible(false);
         GameFrame gobangJFrame = new GameFrame("Gobang", gobang, player);
-        gobangJFrame.addWindowListener(new WindowsClosed(this));
-        gobangJFrame.setResizable(false);
-        gobangJFrame.setSize(600, 610);
         gobangJFrame.setVisible(true);
-
+        gobangJFrame.addWindowListener(new WindowsClosed(this));
         return gobangJFrame;
     }
 

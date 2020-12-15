@@ -17,6 +17,11 @@ public class Gobang {
 
     private Color nowPlayerColor = GOBANG_PLAYER1_COLOR;
     private Color ownPlayerColor;
+    private Player player;
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
 
     public Color getOwnPlayerColor() {
         return ownPlayerColor;
@@ -93,10 +98,12 @@ public class Gobang {
         while (true) {
             if (time == 5) {
                 gobang.gameOver = true;
-                if (thisColor.equals(this.ownPlayerColor))
+                if (thisColor.equals(this.ownPlayerColor)) {
                     showWinnerGUI();
-                else
+                } else {
+                    player.sentDefeat();
                     showLoserGUI();
+                }
                 Thread closeTask = new Thread(new CloseTask());
                 closeTask.start();
                 return true;

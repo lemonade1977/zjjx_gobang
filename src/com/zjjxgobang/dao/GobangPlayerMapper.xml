@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zjjxgobang.dao.GobangPlayerDao">
+    <select id="searchPlayerByEmail" parameterType="java.lang.String" resultType="com.zjjxgobang.jBean.GobangPlayer">
+        select * from gobang_player WHERE email = #{email}
+    </select>
+    <insert id="registerPlayer">
+        INSERT INTO gobang_player(email, pwd) VALUE (#{email},#{pwd})
+    </insert>
+    <update id="updateWinNumByEmail">
+        UPDATE gobang_player SET winNum = winNum+1 WHERE  email = #{email}
+    </update>
+    <update id="updateDefeatNumByEmail">
+        UPDATE gobang_player SET defeatNum = defeatNum+1 WHERE  email = #{email}
+    </update>
+</mapper>

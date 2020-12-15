@@ -15,7 +15,7 @@ public class GamePlayer1 {
 
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                gobangClient.createGame();
+                gobangClient.createUserFrame();
             }
         });
     }
