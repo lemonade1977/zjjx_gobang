@@ -10,4 +10,10 @@
     <insert id="registerPlayer">
         INSERT INTO gobang_player(email, pwd) VALUE (#{email},#{pwd})
     </insert>
+    <update id="updateWinNumByEmail">
+        UPDATE gobang_player SET winNum = winNum+1 WHERE  email = #{email}
+    </update>
+    <update id="updateDefeatNumByEmail">
+        UPDATE gobang_player SET defeatNum = defeatNum+1 WHERE  email = #{email}
+    </update>
 </mapper>

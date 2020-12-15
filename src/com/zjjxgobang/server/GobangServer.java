@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class GobangServer {
 
@@ -55,12 +54,13 @@ public class GobangServer {
                     sentPlayerInfo(player1, gobangPlayer1, gobangPlayer2);
                     sentPlayerInfo(player2, gobangPlayer1, gobangPlayer2);
 
-                    PlayGameTask playGameTask1 = new PlayGameTask(player1, player2);
-                    PlayGameTask playGameTask2 = new PlayGameTask(player2, player1);
+                    PlayGameTask playGameTask1 = new PlayGameTask(player1, player2,gobangPlayer1,gobangPlayer2);
+                    PlayGameTask playGameTask2 = new PlayGameTask(player2, player1,gobangPlayer1,gobangPlayer2);
                     Thread playGameThread1 = new Thread(playGameTask1);
                     Thread playGameThread2 = new Thread(playGameTask2);
                     playGameThread1.start();
                     playGameThread2.start();
+
                 }
             }
         } catch (IOException e) {
@@ -68,6 +68,20 @@ public class GobangServer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void updateWinner(GobangPlayer player) {
+        SqlSession sqlSession = mybatisUtil.getSqlSession();
+        GobangPlayerDao gobangPlayerDao = sqlSession.getMapper(GobangPlayerDao.class);
+        gobangPlayerDao.updateWinNumByEmail(player.getEmail());
+        sqlSession.close();
+    }
+
+    public void updateDefeat(GobangPlayer player) {
+        SqlSession sqlSession = mybatisUtil.getSqlSession();
+        GobangPlayerDao gobangPlayerDao = sqlSession.getMapper(GobangPlayerDao.class);
+        gobangPlayerDao.updateDefeatNumByEmail(player.getEmail());
+        sqlSession.close();
     }
 
     public void createGameConnect(Socket socket, String color) {
@@ -94,10 +108,15 @@ public class GobangServer {
 
         private Socket thisPlayerSocket;
         private Socket otPlayerSocket;
+        private GobangPlayer thisPlayer;
+        private GobangPlayer otPlayer;
 
-        public PlayGameTask(Socket thisPlayerSocket, Socket otPlayerSocket) {
+        public PlayGameTask(Socket thisPlayerSocket, Socket otPlayerSocket,
+                            GobangPlayer thisPlayer, GobangPlayer otPlayer) {
             this.thisPlayerSocket = thisPlayerSocket;
             this.otPlayerSocket = otPlayerSocket;
+            this.thisPlayer = thisPlayer;
+            this.otPlayer = otPlayer;
         }
 
         @Override
@@ -113,6 +132,19 @@ public class GobangServer {
                     otherWriter.write(msg);
                     otherWriter.flush();
                     if (msg.startsWith("end")) {
+                        if (!thisPlayerSocket.isClosed())
+                            thisPlayerSocket.close();
+                        if (!otPlayerSocket.isClosed())
+                            otPlayerSocket.close();
+                    } else if (msg.startsWith("defeat")) {
+                        String defeatPlayer = msg.split(":")[1].trim();
+                        if (defeatPlayer.equals(thisPlayer.getEmail())){
+                            updateDefeat(thisPlayer);
+                            updateWinner(otPlayer);
+                        }else {
+                            updateWinner(thisPlayer);
+                            updateDefeat(otPlayer);
+                        }
                         if (!thisPlayerSocket.isClosed())
                             thisPlayerSocket.close();
                         if (!otPlayerSocket.isClosed())
@@ -143,7 +175,6 @@ public class GobangServer {
         try {
             accept = serverSocket.accept();
             GobangPlayer gobangPlayer = tryCreateConnect(accept);
-            System.out.println("dao get player" + gobangPlayer);
             list.add(accept);
             list.add(gobangPlayer);
         } catch (IOException e) {

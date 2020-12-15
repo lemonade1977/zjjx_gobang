@@ -78,7 +78,10 @@ public class Player {
                     jPanel.updateGobang(Color.BLACK);
                 }
             } else {
-                if (split[0].startsWith("end")) {
+                if (split[0].startsWith("defeat")){
+                    playerSocket.close();
+                }
+                else if (split[0].startsWith("end")) {
                     playerSocket.close();
                     JOptionPane.showMessageDialog(null, "对手已退出游戏-游戏结束", "连接中断", JOptionPane.ERROR_MESSAGE);
                     System.exit(4);
@@ -102,6 +105,19 @@ public class Player {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void sentDefeat(){
+        BufferedOutputStream out = null;
+        try {
+            out = new BufferedOutputStream(playerSocket.getOutputStream());
+            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            writer.write("defeat:+"+getName()+"\r\n");
+            writer.flush();
+            playerSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

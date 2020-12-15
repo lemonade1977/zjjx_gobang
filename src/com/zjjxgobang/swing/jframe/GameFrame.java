@@ -52,6 +52,7 @@ public class GameFrame extends JFrame {
 
         this.gobang = gobang;
         this.player = player;
+        gobang.setPlayer(player);
 
         this.setResizable(true);
         this.setSize(800, 605);
