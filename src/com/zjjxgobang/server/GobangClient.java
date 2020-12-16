@@ -64,12 +64,14 @@ public class GobangClient {
         protected String doInBackground() {
             socket = player.getPlayerSocket();
             try {
+                socket.setSoTimeout(60000);
                 return player.waitForCreateGame();
             }catch (ConnectException e ){
                 JOptionPane.showMessageDialog(null, "无法找到服务器", "错误消息", JOptionPane.ERROR_MESSAGE);
             }
             catch (SocketTimeoutException e) {
-                JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏", "连接超时", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "太长时间无响应请重启游戏",
+                        "连接超时", JOptionPane.ERROR_MESSAGE);
                 player.sentError();
                 System.exit(-1);
             } catch (IOException e) {
@@ -151,11 +153,6 @@ public class GobangClient {
         public void run() {
 
             Socket socket = waitForPlayer.getSocket();
-            try {
-                socket.setSoTimeout(60000);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
             GameFrame gameFrame = waitForPlayer.getGameFrame();
             ArrayList<JGamePanel> jPanels = gameFrame.getjPanelArrayList();
             try {
